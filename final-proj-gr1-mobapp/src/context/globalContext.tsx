@@ -2,12 +2,33 @@ import React, { createContext, useState, useContext } from 'react';
 
 export type Role = 'admin' | 'shopkeeper' | 'renter' | null;
 
+interface Theme {
+  primary: string;
+  accent: string;
+  background: string;
+  surface: string;
+  text: string;
+  textSecondary: string;
+  danger: string;
+}
+
 interface GlobalContextProps {
   role: Role;
   setRole: (role: Role) => void;
   isLoggedIn: boolean;
   setIsLoggedIn: (status: boolean) => void;
+  theme: Theme;
 }
+
+const defaultTheme: Theme = {
+  primary: '#1B1F23',       
+  accent: '#3D8BFF',        
+  background: '#ECEFF1',    
+  surface: '#FFFFFF',       
+  text: '#121212',          
+  textSecondary: '#5A5A5A', 
+  danger: '#D32F2F',        
+};
 
 const GlobalContext = createContext<GlobalContextProps | undefined>(undefined);
 
@@ -16,7 +37,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
-    <GlobalContext.Provider value={{ role, setRole, isLoggedIn, setIsLoggedIn }}>
+    <GlobalContext.Provider value={{ role, setRole, isLoggedIn, setIsLoggedIn, theme: defaultTheme }}>
       {children}
     </GlobalContext.Provider>
   );
