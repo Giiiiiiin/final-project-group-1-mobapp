@@ -2,25 +2,42 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import LoginScreen from '../screens/LoginScreen';
 import SignInScreen from '../screens/SignInScreen';
-import HomeScreen from '../screens/HomeScreen';
+import RoleBasedDrawerNavigator from '../navigation/RoleBasedDrawerNavigator';
+import Header from '../components/Header';
 import { useGlobalContext } from '../context/globalContext';
 
 const Stack = createNativeStackNavigator();
 
 export const AppNavigator = () => {
-  const { isLoggedIn, role } = useGlobalContext();
+  const { isLoggedIn } = useGlobalContext();
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      screenOptions={({ navigation }) => ({
+        header: (props) => <Header {...props} navigation={navigation} />,
+      })}
+    >
       {!isLoggedIn ? (
         <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="SignIn" component={SignInScreen} />
+          <Stack.Screen
+            name="Login"
+            component={LoginScreen}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="SignIn"
+            component={SignInScreen}
+            options={{ headerShown: false }}
+          />
         </>
       ) : (
-        <>
-          <Stack.Screen name="Home" component={HomeScreen} />
-        </>
+        <Stack.Screen
+          name="Home"
+          component={RoleBasedDrawerNavigator}
+          options={{
+            headerTitle: 'Hema & Kendo Gear',
+          }}
+        />
       )}
     </Stack.Navigator>
   );
