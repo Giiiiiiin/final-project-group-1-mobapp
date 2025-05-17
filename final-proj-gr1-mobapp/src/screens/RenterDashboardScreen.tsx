@@ -6,6 +6,7 @@ const ShopkeeperDashboardScreen = () => {
   const [newEquipment, setNewEquipment] = useState({
     name: '',
     price: '',
+    plan: '',
     description: '',
   });
   const [showAddForm, setShowAddForm] = useState(false);
@@ -21,7 +22,7 @@ const ShopkeeperDashboardScreen = () => {
       ...newEquipment
     }]);
     
-    setNewEquipment({ name: '', price: '', description: '' });
+    setNewEquipment({ name: '', price: '', plan: '', description: '' });
     setShowAddForm(false);
     Alert.alert('Success', 'Equipment added to your listing!');
   };
@@ -51,10 +52,18 @@ const ShopkeeperDashboardScreen = () => {
           
           <TextInput
             style={styles.input}
-            placeholder="Daily Price (₹)*"
+            placeholder="Daily Price (₱)"
             value={newEquipment.price}
             onChangeText={(text) => setNewEquipment({...newEquipment, price: text})}
             keyboardType="numeric"
+          />
+
+           <TextInput
+            style={styles.input}
+            placeholder="Set Payment Plan"
+            value={newEquipment.plan}
+            onChangeText={(text) => setNewEquipment({...newEquipment, plan: text})}
+            keyboardType="default"
           />
           
           <TextInput
@@ -87,7 +96,7 @@ const ShopkeeperDashboardScreen = () => {
         {equipmentList.map(item => (
           <View key={item.id} style={styles.equipmentCard}>
             <Text style={styles.equipmentName}>{item.name}</Text>
-            <Text style={styles.equipmentPrice}>₹{item.price}/day</Text>
+            <Text style={styles.equipmentPrice}>₱{item.price}/{item.plan}</Text>
             {item.description && (
               <Text style={styles.equipmentDescription}>{item.description}</Text>
             )}
