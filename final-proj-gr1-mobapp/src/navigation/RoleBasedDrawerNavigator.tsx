@@ -8,47 +8,50 @@ import {
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import ShopkeeperDashboardScreen from '../screens/ShopkeeperDashboardScreen';
 import RenterDashboardScreen from '../screens/RenterDashboardScreen';
+import ManageAccountsScreen from '../screens/ManageAccountsScreen';
+import DynamicProfile from '../screens/DynamicProfile';
 import { useGlobalContext } from '../context/globalContext';
 import { showMessage } from 'react-native-flash-message';
 
 const Drawer = createDrawerNavigator();
 
 const CustomDrawerContent = (props) => {
-  const { setIsLoggedIn } = useGlobalContext();
+  const { currentUser, setIsLoggedIn } = useGlobalContext();
 
   const handleLogout = () => {
     setIsLoggedIn(false);
     props.navigation.closeDrawer();
-    showMessage({
-      message: 'Logged Out',
-      description: 'You have been successfully logged out.',
-      type: 'info',
-    });
   };
 
   return (
     <DrawerContentScrollView {...props}>
-      {/* Conditionally render screens based on current route names */}
-      {props.state.routeNames.includes('AdminDashboard') && (
-        <DrawerItem
-          label="Admin Dashboard"
-          onPress={() => props.navigation.navigate('AdminDashboard')}
-        />
+      {currentUser?.role === 'admin' && (
+        <>
+          <DrawerItem
+            label="Admin Dashboard"
+            onPress={() => props.navigation.navigate('AdminDashboard')}
+          />
+          <DrawerItem
+            label="Manage Accounts"
+            onPress={() => props.navigation.navigate('ManageAccounts')}
+          />
+        </>
       )}
 
-      {props.state.routeNames.includes('ShopkeeperDashboard') && (
+      {(currentUser?.role === 'shopkeeper') && (
         <DrawerItem
           label="Shopkeeper Dashboard"
           onPress={() => props.navigation.navigate('ShopkeeperDashboard')}
         />
       )}
 
-      <DrawerItem
-        label="Renter Dashboard"
-        onPress={() => props.navigation.navigate('RenterDashboard')}
-      />
+      {currentUser?.role === 'renter' && (
+        <DrawerItem
+          label="Renter Dashboard"
+          onPress={() => props.navigation.navigate('RenterDashboard')}
+        />
+      )}
 
-      {/* Logout Button */}
       <DrawerItem
         label="Logout"
         onPress={handleLogout}
@@ -59,29 +62,37 @@ const CustomDrawerContent = (props) => {
 };
 
 const RoleBasedDrawerNavigator = () => {
-  const { role } = useGlobalContext();
+  const { currentUser } = useGlobalContext();
 
   return (
     <Drawer.Navigator
       initialRouteName={
-        role === 'admin'
+        currentUser?.role === 'admin'
           ? 'AdminDashboard'
-          : role === 'shopkeeper'
+          : currentUser?.role === 'shopkeeper'
           ? 'ShopkeeperDashboard'
           : 'RenterDashboard'
       }
-      screenOptions={{ headerShown: false }}
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
-      {role === 'admin' && (
-        <Drawer.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
+      {/* Admin Screens */}
+      {currentUser?.role === 'admin' && (
+        <>
+          <Drawer.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
+          <Drawer.Screen name="ManageAccounts" component={ManageAccountsScreen} options={{ title: 'Manage Accounts' }} />
+          <Drawer.Screen name="DynamicProfile" component={DynamicProfile} options={{ title: 'Admin Profile' }} />
+        </>
       )}
 
-      {(role === 'admin' || role === 'shopkeeper') && (
-        <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} options={{ title: 'Shopkeeper Dashboard' }} />
+      {/* Shopkeeper Screen */}
+      {currentUser?.role === 'shopkeeper' && (
+        <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} />
       )}
 
-      <Drawer.Screen name="RenterDashboard" component={RenterDashboardScreen} options={{ title: 'Renter Dashboard' }} />
+      {/* Renter Screen */}
+      {currentUser?.role === 'renter' && (
+        <Drawer.Screen name="RenterDashboard" component={RenterDashboardScreen} />
+      )}
     </Drawer.Navigator>
   );
 };

@@ -3,12 +3,18 @@ import React, { createContext, useState, useContext } from 'react';
 // Types
 export type Role = 'admin' | 'shopkeeper' | 'renter' | null;
 
+export interface ImageData {
+  uri: string;
+  type?: string; // e.g., 'local' | 'remote'
+  name?: string;
+}
+
 export interface User {
   id: string;
   email: string;
   password: string;
   role: Role;
-  profileImage?: string; // Optional image URI
+  profileImage?: ImageData; // Optional image URI
 }
 
 interface Theme {
@@ -104,6 +110,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         users,
         registerUser,
         loginUser,
+        setUsers,
       }}
     >
       {children}

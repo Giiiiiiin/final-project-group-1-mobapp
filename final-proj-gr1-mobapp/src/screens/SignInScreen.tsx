@@ -7,6 +7,12 @@ import { showMessage } from 'react-native-flash-message';
 
 type Role = 'renter' | 'shopkeeper';
 
+// Email validation regex
+const isValidEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 const SignInScreen = () => {
   const { registerUser, users } = useGlobalContext();
   const navigation = useNavigation();
@@ -17,7 +23,6 @@ const SignInScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = () => {
-    
     const trimmedEmail = email.trim();
     const trimmedPassword = password.trim();
 
@@ -30,7 +35,19 @@ const SignInScreen = () => {
       return;
     }
 
-    const emailExists = users.some((user) => user.email.trim().toLowerCase() === trimmedEmail.toLowerCase());
+    // Validate email format
+    if (!isValidEmail(trimmedEmail)) {
+      showMessage({
+        message: 'Invalid Email',
+        description: 'Please enter a valid email address. [email@example.com]',
+        type: 'danger',
+      });
+      return;
+    }
+
+    const emailExists = users.some(
+      (user) => user.email.trim().toLowerCase() === trimmedEmail.toLowerCase()
+    );
 
     if (emailExists) {
       showMessage({

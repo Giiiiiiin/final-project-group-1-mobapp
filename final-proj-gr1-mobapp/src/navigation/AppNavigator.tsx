@@ -14,21 +14,15 @@ export const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={({ navigation }) => ({
-        header: (props) => <Header {...props} navigation={navigation} />,
+        // Only show the custom header if NOT logged in
+        header: !isLoggedIn ? (props) => <Header {...props} navigation={navigation} /> : undefined,
+        headerShown: !isLoggedIn, // Hide default header if not logged in
       })}
     >
       {!isLoggedIn ? (
         <>
-          <Stack.Screen
-            name="Login"
-            component={LoginScreen}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="SignIn"
-            component={SignInScreen}
-            options={{ headerShown: false }}
-          />
+          <Stack.Screen name="Login" component={LoginScreen} />
+          <Stack.Screen name="SignIn" component={SignInScreen} />
         </>
       ) : (
         <Stack.Screen
