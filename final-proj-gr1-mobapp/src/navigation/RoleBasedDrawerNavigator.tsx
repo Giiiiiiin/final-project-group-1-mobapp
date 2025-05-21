@@ -9,6 +9,8 @@ import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import ShopkeeperDashboardScreen from '../screens/ShopkeeperDashboardScreen';
 import RenterDashboardScreen from '../screens/RenterDashboardScreen';
 import ManageAccountsScreen from '../screens/ManageAccountsScreen';
+import AddEquipmentScreen from '../screens/AddEquipmentScreen';
+import UpdateEquipmentScreen from '../screens/UpdateEquipmentScreen';
 import DynamicProfile from '../screens/DynamicProfile';
 import { useGlobalContext } from '../context/globalContext';
 import { showMessage } from 'react-native-flash-message';
@@ -41,7 +43,7 @@ const CustomDrawerContent = (props) => {
       {(currentUser?.role === 'shopkeeper') && (
         <DrawerItem
           label="Shopkeeper Dashboard"
-          onPress={() => props.navigation.navigate('ShopkeeperDashboard')}
+          onPress={() => props.navigation.navigate('Shopkeeper Dashboard')}
         />
       )}
 
@@ -70,7 +72,7 @@ const RoleBasedDrawerNavigator = () => {
         currentUser?.role === 'admin'
           ? 'AdminDashboard'
           : currentUser?.role === 'shopkeeper'
-          ? 'ShopkeeperDashboard'
+          ? 'Shopkeeper Dashboard'
           : 'RenterDashboard'
       }
       drawerContent={(props) => <CustomDrawerContent {...props} />}
@@ -86,8 +88,20 @@ const RoleBasedDrawerNavigator = () => {
 
       {/* Shopkeeper Screen */}
       {currentUser?.role === 'shopkeeper' && (
-        <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} />
-      )}
+  <>
+    <Drawer.Screen name="Shopkeeper Dashboard" component={ShopkeeperDashboardScreen} />
+    <Drawer.Screen 
+      name="AddEquipment" 
+      component={AddEquipmentScreen} 
+      options={{ title: 'Add Equipment' }}
+    />
+    <Drawer.Screen 
+      name="UpdateEquipment" 
+      component={UpdateEquipmentScreen} 
+      options={{ title: 'Update Equipment', drawerItemStyle: { display: 'none' } }}
+    />
+  </>
+)}
 
       {/* Renter Screen */}
       {currentUser?.role === 'renter' && (
