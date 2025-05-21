@@ -1,15 +1,17 @@
-import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, Alert, FlatList, Image, Dimensions } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { ScrollView, View, Text, FlatList, StyleSheet, TextInput, Image, Dimensions, Alert } from 'react-native';
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
 
+// Interface for rental duration
 interface Duration {
   months: number;
   days: number;
   hours: number;
 }
 
-interface RentedGear {  // additional details may be added
+// Interface for rented gear
+interface RentedGear {
   id: string;
   gearName: string;
   rentalPlan: 'Weekly' | 'Monthly' | 'Yearly';
@@ -18,7 +20,18 @@ interface RentedGear {  // additional details may be added
   image: string;
 }
 
-const rentedEquipment: RentedGear[] = [ // sample items for now
+// Interface for available gear
+interface AvailableGear {
+  id: string;
+  name: string;
+  description: string;
+  plans: { type: 'Weekly' | 'Monthly' | 'Yearly'; price: string }[];
+  image: string;
+  status: string;
+}
+
+// Dummy data for rented equipment
+const rentedEquipment: RentedGear[] = [
   {
     id: '1',
     gearName: 'Item 1',
@@ -33,68 +46,134 @@ const rentedEquipment: RentedGear[] = [ // sample items for now
     rentalPlan: 'Weekly',
     duration: { months: 0, days: 6, hours: 0 },
     price: '$30',
-     image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
+    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
   },
   {
     id: '3',
     gearName: 'Item 3',
     rentalPlan: 'Yearly',
     duration: { months: 11, days: 28, hours: 12 },
-     image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
     price: '$110',
+    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
   },
 ];
 
-// keeps spacing for cards consistent (it's prettier now)
-const screenWidth = Dimensions.get('window').width;
-const cardWidth = (screenWidth - 30) / 2; 
+// Dummy data for available equipment
+const availableEquipment: AvailableGear[] = [
+  {
+    id: '4',
+    name: 'Arming Sword',
+    description: 'A classic European sword for HEMA practice.',
+    plans: [
+      { type: 'Weekly', price: '$50' },
+      { type: 'Monthly', price: '$180' },
+      { type: 'Yearly', price: '$1800' },
+    ],
+    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
+    status: 'Available',
+  },
+  {
+    id: '5',
+    name: 'Kendo Mask',
+    description: 'Protective mask for Kendo training.',
+    plans: [
+      { type: 'Weekly', price: '$30' },
+      { type: 'Monthly', price: '$100' },
+      { type: 'Yearly', price: '$1000' },
+    ],
+    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
+    status: 'Rented out until 2023-12-10',
+  },
+];
 
-const formatDuration = ({ months, days, hours }: Duration): string => { //evil ass formatting structure (placeholder for now)
+// Calculate card width for consistent two-column layout
+const screenWidth = Dimensions.get('window').width;
+const cardWidth = (screenWidth - 30) / 2;
+
+// Format duration string
+const formatDuration = ({ months, days, hours }: Duration): string => {
   return `${months} month${months !== 1 ? 's' : ''} - ${days} day${days !== 1 ? 's' : ''} - ${hours} hour${hours !== 1 ? 's' : ''}`;
 };
 
 const RenterDashboardScreen = () => {
   const { currentUser } = useGlobalContext();
   const navigation = useNavigation();
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // Restrict access to renters only
   useEffect(() => {
     if (currentUser?.role !== 'renter') {
       Alert.alert('Access Denied', 'You do not have permission to view this page.');
-      navigation.goBack(); 
+      navigation.goBack();
     }
   }, [currentUser]);
 
+  // Filter available equipment based on search query
+  const filteredEquipment = availableEquipment.filter(item =>
+    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Text style={styles.title}>Welcome, Renter!</Text>
-      <Text style={styles.subtitle}>Your Current Rentals:</Text>
-      <FlatList
-        numColumns={2}
-        data={rentedEquipment}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { width: cardWidth }]}>
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.cardDetails}>
-              <Text style={styles.gearName}>{item.gearName}</Text>
-              <Text style={styles.detail}>Plan: {item.rentalPlan}</Text>
-              <Text style={styles.detail}>Duration: {formatDuration(item.duration)}</Text>
-              <Text style={styles.detail}>Price: {item.price}</Text>
+
+      {/* Available Equipment Section */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Available Equipment</Text>
+        <TextInput
+          placeholder="Search equipment..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          style={styles.searchBar}
+        />
+        <FlatList
+          data={filteredEquipment}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <View style={[styles.card, { width: cardWidth }]}>
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.cardDetails}>
+                <Text style={styles.gearName}>{item.name}</Text>
+                <Text style={styles.detail}>Status: {item.status}</Text>
+                <Text style={styles.detail}>From {item.plans[0].price}/{item.plans[0].type.toLowerCase()}</Text>
+              </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.listContainer}
-      />
-    </View>
+          )}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
+
+      {/* Current Rentals Section */}
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Your Current Rentals</Text>
+        <FlatList
+          data={rentedEquipment}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <View style={[styles.card, { width: cardWidth }]}>
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.cardDetails}>
+                <Text style={styles.gearName}>{item.gearName}</Text>
+                <Text style={styles.detail}>Plan: {item.rentalPlan}</Text>
+                <Text style={styles.detail}>Duration: {formatDuration(item.duration)}</Text>
+                <Text style={styles.detail}>Price: {item.price}</Text>
+              </View>
+            </View>
+          )}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
+    </ScrollView>
   );
 };
 
 export default RenterDashboardScreen;
 
-const styles = StyleSheet.create({  // considering whether or not to shift these to global contexts
+const styles = StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: '#fff',
     paddingTop: 20,
     paddingHorizontal: 10,
@@ -105,11 +184,24 @@ const styles = StyleSheet.create({  // considering whether or not to shift these
     marginBottom: 15,
     textAlign: 'center',
   },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  sectionContainer: {
+    marginBottom: 20,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
     marginBottom: 10,
     textAlign: 'left',
+  },
+  searchBar: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    padding: 10,
+    marginBottom: 10,
   },
   listContainer: {
     gap: 10,
