@@ -118,52 +118,54 @@ const RenterDashboardScreen = () => {
     <ScrollView style={styles.container}>
       <Text style={styles.title}>Welcome, Renter!</Text>
 
-      {/* Search Bar for Available Equipment */}
-      <TextInput
-        placeholder="Search equipment..."
-        value={searchQuery}
-        onChangeText={setSearchQuery}
-        style={styles.searchBar}
-      />
-
       {/* Available Equipment Section */}
-      <Text style={styles.subtitle}>Available Equipment</Text>
-      <FlatList
-        data={filteredEquipment}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { width: cardWidth }]}>
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.cardDetails}>
-              <Text style={styles.gearName}>{item.name}</Text>
-              <Text style={styles.detail}>Status: {item.status}</Text>
-              <Text style={styles.detail}>From {item.plans[0].price}/{item.plans[0].type.toLowerCase()}</Text>
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Available Equipment</Text>
+        <TextInput
+          placeholder="Search equipment..."
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          style={styles.searchBar}
+        />
+        <FlatList
+          data={filteredEquipment}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <View style={[styles.card, { width: cardWidth }]}>
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.cardDetails}>
+                <Text style={styles.gearName}>{item.name}</Text>
+                <Text style={styles.detail}>Status: {item.status}</Text>
+                <Text style={styles.detail}>From {item.plans[0].price}/{item.plans[0].type.toLowerCase()}</Text>
+              </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.listContainer}
-      />
+          )}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
 
       {/* Current Rentals Section */}
-      <Text style={styles.subtitle}>Your Current Rentals</Text>
-      <FlatList
-        data={rentedEquipment}
-        keyExtractor={item => item.id}
-        numColumns={2}
-        renderItem={({ item }) => (
-          <View style={[styles.card, { width: cardWidth }]}>
-            <Image source={{ uri: item.image }} style={styles.image} />
-            <View style={styles.cardDetails}>
-              <Text style={styles.gearName}>{item.gearName}</Text>
-              <Text style={styles.detail}>Plan: {item.rentalPlan}</Text>
-              <Text style={styles.detail}>Duration: {formatDuration(item.duration)}</Text>
-              <Text style={styles.detail}>Price: {item.price}</Text>
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>Your Current Rentals</Text>
+        <FlatList
+          data={rentedEquipment}
+          keyExtractor={item => item.id}
+          numColumns={2}
+          renderItem={({ item }) => (
+            <View style={[styles.card, { width: cardWidth }]}>
+              <Image source={{ uri: item.image }} style={styles.image} />
+              <View style={styles.cardDetails}>
+                <Text style={styles.gearName}>{item.gearName}</Text>
+                <Text style={styles.detail}>Plan: {item.rentalPlan}</Text>
+                <Text style={styles.detail}>Duration: {formatDuration(item.duration)}</Text>
+                <Text style={styles.detail}>Price: {item.price}</Text>
+              </View>
             </View>
-          </View>
-        )}
-        contentContainerStyle={styles.listContainer}
-      />
+          )}
+          contentContainerStyle={styles.listContainer}
+        />
+      </View>
     </ScrollView>
   );
 };
@@ -182,19 +184,24 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     textAlign: 'center',
   },
+  sectionContainer: {
+    marginBottom: 20,
+    padding: 10,
+    backgroundColor: '#f9f9f9',
+    borderRadius: 10,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'left',
+  },
   searchBar: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
     padding: 10,
-    marginVertical: 10,
-  },
-  subtitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginTop: 20,
     marginBottom: 10,
-    textAlign: 'left',
   },
   listContainer: {
     gap: 10,
