@@ -9,7 +9,7 @@ const ShopkeeperDashboardScreen = () => {
     plan: '',
     description: '',
   });
-  const [showAddForm, setShowAddForm] = useState(false);
+  const [showAddForm, setShowAddForm] = useState(false)
 
   const handleAddEquipment = () => {
     if (!newEquipment.name || !newEquipment.price) {
