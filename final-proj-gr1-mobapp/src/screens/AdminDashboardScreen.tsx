@@ -1,18 +1,24 @@
-import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Alert } from 'react-native';
+import { useGlobalContext } from '../context/globalContext';
+import { useNavigation } from '@react-navigation/native';
 
 const AdminDashboardScreen = () => {
+  const { currentUser } = useGlobalContext();
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (currentUser?.role !== 'admin') {
+      Alert.alert('Access Denied', 'You do not have permission to view this page.');
+      navigation.goBack(); // Or redirect to renter/shopkeeper dashboard
+    }
+  }, [currentUser]);
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Admin Dashboard</Text>
-      <Text>Manage users, inventory, and rental plans.</Text>
+    <View>
+      <Text>Welcome, Admin!</Text>
     </View>
   );
 };
 
 export default AdminDashboardScreen;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', alignItems: 'center' },
-  title: { fontSize: 20, fontWeight: 'bold', marginBottom: 10 },
-});
