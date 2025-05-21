@@ -292,7 +292,6 @@ const DynamicProfile = () => {
           </View>
         )}
       </View>
-
       {/* Back Button - Always at Bottom */}
     </ScrollView>
   );

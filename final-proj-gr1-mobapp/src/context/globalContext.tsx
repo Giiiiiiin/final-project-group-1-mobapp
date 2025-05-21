@@ -14,7 +14,10 @@ export interface Equipment {
   price: string;
   plan: string;
   description?: string;
+  categories?: string[]; 
+  images?: string[];  
 }
+
 
 export interface User {
   id: string;

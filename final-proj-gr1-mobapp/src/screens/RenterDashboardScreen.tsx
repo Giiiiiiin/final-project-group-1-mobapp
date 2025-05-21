@@ -1,172 +1,153 @@
-import React, { useState, useEffect } from 'react';
-import { ScrollView, View, Text, FlatList, StyleSheet, TextInput, Image, Dimensions, Alert } from 'react-native';
+import React from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  TextInput,
+  Image,
+  Dimensions,
+  ScrollView,
+  Pressable,
+} from 'react-native';
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
+import BottomSpacer from '../components/BottomSpacer';
 
-// Interface for rental duration
-interface Duration {
-  months: number;
-  days: number;
-  hours: number;
-}
-
-// Interface for rented gear
-interface RentedGear {
-  id: string;
-  gearName: string;
-  rentalPlan: 'Weekly' | 'Monthly' | 'Yearly';
-  duration: Duration;
-  price: string;
-  image: string;
-}
-
-// Interface for available gear
-interface AvailableGear {
-  id: string;
-  name: string;
-  description: string;
-  plans: { type: 'Weekly' | 'Monthly' | 'Yearly'; price: string }[];
-  image: string;
-  status: string;
-}
-
-// Dummy data for rented equipment
-const rentedEquipment: RentedGear[] = [
-  {
-    id: '1',
-    gearName: 'Item 1',
-    rentalPlan: 'Monthly',
-    duration: { months: 0, days: 12, hours: 6 },
-    price: '$75',
-    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
-  },
-  {
-    id: '2',
-    gearName: 'Item 2',
-    rentalPlan: 'Weekly',
-    duration: { months: 0, days: 6, hours: 0 },
-    price: '$30',
-    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
-  },
-  {
-    id: '3',
-    gearName: 'Item 3',
-    rentalPlan: 'Yearly',
-    duration: { months: 11, days: 28, hours: 12 },
-    price: '$110',
-    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
-  },
-];
-
-// Dummy data for available equipment
-const availableEquipment: AvailableGear[] = [
-  {
-    id: '4',
-    name: 'Arming Sword',
-    description: 'A classic European sword for HEMA practice.',
-    plans: [
-      { type: 'Weekly', price: '$50' },
-      { type: 'Monthly', price: '$180' },
-      { type: 'Yearly', price: '$1800' },
-    ],
-    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
-    status: 'Available',
-  },
-  {
-    id: '5',
-    name: 'Kendo Mask',
-    description: 'Protective mask for Kendo training.',
-    plans: [
-      { type: 'Weekly', price: '$30' },
-      { type: 'Monthly', price: '$100' },
-      { type: 'Yearly', price: '$1000' },
-    ],
-    image: 'https://i201.photobucket.com/albums/aa288/reversethieves/show%20images/Type%20Moon/Unlimited%20Blade%20Works/UBW%2024%20D_1.jpg~original',
-    status: 'Rented out until 2023-12-10',
-  },
-];
-
-// Calculate card width for consistent two-column layout
 const screenWidth = Dimensions.get('window').width;
 const cardWidth = (screenWidth - 30) / 2;
 
-// Format duration string
-const formatDuration = ({ months, days, hours }: Duration): string => {
-  return `${months} month${months !== 1 ? 's' : ''} - ${days} day${days !== 1 ? 's' : ''} - ${hours} hour${hours !== 1 ? 's' : ''}`;
-};
+const categories = ['Knife', 'Polearm', 'Longsword', 'Armor', 'Shield', 'Other'];
 
 const RenterDashboardScreen = () => {
-  const { currentUser } = useGlobalContext();
+  const { currentUser, users } = useGlobalContext();
   const navigation = useNavigation();
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const [selectedCategories, setSelectedCategories] = React.useState<string[]>([]);
 
-  // Restrict access to renters only
-  useEffect(() => {
-    if (currentUser?.role !== 'renter') {
-      Alert.alert('Access Denied', 'You do not have permission to view this page.');
-      navigation.goBack();
-    }
-  }, [currentUser]);
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev =>
+      prev.includes(category)
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
 
-  // Filter available equipment based on search query
-  const filteredEquipment = availableEquipment.filter(item =>
-    item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const availableEquipment = users
+    .filter(u => u.role === 'shopkeeper')
+    .flatMap(u => u.equipmentList || []);
+
+  const currentRentals = currentUser?.currentlyBorrowedList || [];
+
+  const filteredEquipment = availableEquipment.filter(item => {
+    const query = searchQuery.toLowerCase();
+
+    const matchesQuery =
+      item.name.toLowerCase().includes(query) ||
+      item.description?.toLowerCase().includes(query) ||
+      item.categories?.some(cat => cat.toLowerCase().includes(query));
+
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.some(cat =>
+        item.categories?.map(c => c.toLowerCase()).includes(cat.toLowerCase())
+      );
+
+    return matchesQuery && matchesCategory;
+  });
 
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Welcome, Renter!</Text>
+    <View style={{ flex: 1 }}>
+      <FlatList
+        data={currentRentals}
+        keyExtractor={item => item.id}
+        numColumns={2}
+        ListHeaderComponent={
+          <View style={styles.container}>
+            <Text style={styles.title}>Welcome, Renter!</Text>
 
-      {/* Available Equipment Section */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Available Equipment</Text>
-        <TextInput
-          placeholder="Search equipment..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-          style={styles.searchBar}
-        />
-        <FlatList
-          data={filteredEquipment}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          renderItem={({ item }) => (
-            <View style={[styles.card, { width: cardWidth }]}>
-              <Image source={{ uri: item.image }} style={styles.image} />
-              <View style={styles.cardDetails}>
-                <Text style={styles.gearName}>{item.name}</Text>
-                <Text style={styles.detail}>Status: {item.status}</Text>
-                <Text style={styles.detail}>From {item.plans[0].price}/{item.plans[0].type.toLowerCase()}</Text>
-              </View>
-            </View>
-          )}
-          contentContainerStyle={styles.listContainer}
-        />
-      </View>
+            <View style={styles.sectionContainer}>
+              <Text style={styles.sectionTitle}>Available Equipment</Text>
+              <TextInput
+                placeholder="Search equipment..."
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                style={styles.searchBar}
+              />
 
-      {/* Current Rentals Section */}
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>Your Current Rentals</Text>
-        <FlatList
-          data={rentedEquipment}
-          keyExtractor={item => item.id}
-          numColumns={2}
-          renderItem={({ item }) => (
-            <View style={[styles.card, { width: cardWidth }]}>
-              <Image source={{ uri: item.image }} style={styles.image} />
-              <View style={styles.cardDetails}>
-                <Text style={styles.gearName}>{item.gearName}</Text>
-                <Text style={styles.detail}>Plan: {item.rentalPlan}</Text>
-                <Text style={styles.detail}>Duration: {formatDuration(item.duration)}</Text>
-                <Text style={styles.detail}>Price: {item.price}</Text>
-              </View>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={{ marginBottom: 10 }}
+                contentContainerStyle={{ paddingHorizontal: 4 }}
+              >
+                {categories.map((category) => (
+                  <Pressable
+                    key={category}
+                    onPress={() => toggleCategory(category)}
+                    style={[
+                      styles.categoryChip,
+                      selectedCategories.includes(category) && styles.categoryChipSelected,
+                    ]}
+                  >
+                    <Text
+                      style={[
+                        styles.categoryChipText,
+                        selectedCategories.includes(category) && styles.categoryChipTextSelected,
+                      ]}
+                    >
+                      {category}
+                    </Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+
+              <FlatList
+                data={filteredEquipment}
+                keyExtractor={item => item.id}
+                numColumns={2}
+                renderItem={({ item }) => (
+                  <View style={[styles.card, { width: cardWidth }]}>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageScroll}>
+                      {item.images?.map((imgUri, idx) => (
+                        <Image
+                          key={idx}
+                          source={{ uri: imgUri }}
+                          style={styles.carouselImage}
+                        />
+                      ))}
+                    </ScrollView>
+                    <View style={styles.cardDetails}>
+                      <Text style={styles.gearName}>{item.name}</Text>
+                      <Text style={styles.detail}>₱{item.price}/{item.plan}</Text>
+                      <Text style={styles.detail}>Category: {(item.categories || []).join(', ')}</Text>
+                    </View>
+                  </View>
+                )}
+                contentContainerStyle={{
+                  paddingBottom: 100,
+                  gap: 10,
+                }}
+              />
             </View>
-          )}
-          contentContainerStyle={styles.listContainer}
-        />
-      </View>
-    </ScrollView>
+
+            <Text style={styles.sectionTitle}>Your Current Rentals</Text>
+          </View>
+        }
+        renderItem={({ item }) => (
+          <View style={[styles.card, { width: cardWidth }]}>
+            <Image source={{ uri: item.image }} style={styles.image} />
+            <View style={styles.cardDetails}>
+              <Text style={styles.gearName}>{item.name}</Text>
+              <Text style={styles.detail}>₱{item.price}/{item.plan}</Text>
+            </View>
+          </View>
+        )}
+        contentContainerStyle={styles.listContainer}
+        ListFooterComponent={<View style={{ height: 100, backgroundColor: '#fff' }} />}
+      />
+      <BottomSpacer />
+    </View>
   );
 };
 
@@ -227,5 +208,38 @@ const styles = StyleSheet.create({
   },
   detail: {
     fontSize: 12,
+  },
+  imageScroll: {
+    width: '100%',
+    height: 120,
+    marginBottom: 8,
+  },
+  carouselImage: {
+    width: 120,
+    height: 120,
+    borderRadius: 10,
+    marginRight: 8,
+    resizeMode: 'cover',
+  },
+  categoryChip: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: '#ccc',
+    backgroundColor: '#f0f0f0',
+    marginRight: 8,
+  },
+  categoryChipSelected: {
+    backgroundColor: '#1B1F23',
+    borderColor: '#1B1F23',
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: '#333',
+  },
+  categoryChipTextSelected: {
+    color: '#fff',
+    fontWeight: 'bold',
   },
 });

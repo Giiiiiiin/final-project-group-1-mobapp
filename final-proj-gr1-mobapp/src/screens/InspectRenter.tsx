@@ -13,6 +13,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useGlobalContext } from '../context/globalContext';
 import { showMessage } from 'react-native-flash-message';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import BottomSpacer from '../components/BottomSpacer';
 
 const isValidEmail = (email: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 const isValidPassword = (password: string) => password.length >= 6;
@@ -105,7 +106,8 @@ const InspectRenter = () => {
   };
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+    <ScrollView>
       <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
         <Text style={styles.backButtonText}>← Back</Text>
       </Pressable>
@@ -131,7 +133,7 @@ const InspectRenter = () => {
         ) : (
           <Text style={styles.email}>{user.email}</Text>
         )}
-
+        <Text style={styles.role}>ID: {user.id}</Text>
         <Text style={styles.role}>Role: {user.role}</Text>
         {currentUser?.role === 'admin' && (
           <Text style={styles.role}>Password: {user.password}</Text>
@@ -223,13 +225,15 @@ const InspectRenter = () => {
         )}
       </View>
     </ScrollView>
+    <BottomSpacer />
+    </View>
   );
 };
 
 export default InspectRenter;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 16 },
+  container: { flex: 1, backgroundColor: '#f5f5f5', padding: 16, paddingBottom: 80},
   header: { alignItems: 'center', marginBottom: 20 },
   image: { width: 100, height: 100, borderRadius: 50, marginBottom: 10 },
   placeholder: {

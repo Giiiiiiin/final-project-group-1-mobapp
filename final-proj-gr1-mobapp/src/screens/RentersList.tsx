@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, FlatList, Pressable, StyleSheet, SafeAreaView } from 'react-native';
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
+import BottomSpacer from '../components/BottomSpacer';
 
 const RentersList = () => {
   const { users } = useGlobalContext();
@@ -27,6 +28,7 @@ const RentersList = () => {
           </Pressable>
         )}
       />
+      <BottomSpacer />
     </SafeAreaView>
   );
 };
@@ -34,7 +36,7 @@ const RentersList = () => {
 export default RentersList;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff' },
+  container: { flex: 1, padding: 16, backgroundColor: '#fff', paddingBottom: 80},
   header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
   backButton: {
     marginBottom: 16,

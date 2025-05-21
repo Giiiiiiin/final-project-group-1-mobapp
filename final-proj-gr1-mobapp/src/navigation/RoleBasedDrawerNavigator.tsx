@@ -9,6 +9,10 @@ import ShopkeeperDashboardScreen from '../screens/ShopkeeperDashboardScreen';
 import RenterDashboardScreen from '../screens/RenterDashboardScreen';
 import ManagePaymentPlansScreen from '../screens/ManagePaymentPlansScreen';
 import AdminStackNavigator from './AdminStackNavigator';
+import ShopkeeperStackNavigator from './ShopkeeperStackNavigator';
+import RenterStackNavigator from './RenterStackNavigator';
+import DynamicProfile from '../screens/DynamicProfile';
+
 import { useGlobalContext } from '../context/globalContext';
 
 const Drawer = createDrawerNavigator();
@@ -41,17 +45,29 @@ const CustomDrawerContent = (props) => {
       )}
 
       {currentUser?.role === 'shopkeeper' && (
-        <DrawerItem
-          label="Shopkeeper Dashboard"
-          onPress={() => props.navigation.navigate('ShopkeeperDashboard')}
-        />
+        <>
+          <DrawerItem
+            label="Shopkeeper Dashboard"
+            onPress={() => props.navigation.navigate('ShopkeeperDashboard')}
+          />
+          <DrawerItem
+            label="Shopkeeper Profile"
+            onPress={() => props.navigation.navigate('ShopkeeperProfile')}
+          />
+        </>
       )}
 
       {currentUser?.role === 'renter' && (
-        <DrawerItem
+        <>
+          <DrawerItem
           label="Renter Dashboard"
           onPress={() => props.navigation.navigate('RenterDashboard')}
-        />
+          />
+          <DrawerItem
+            label="Renter Profile"
+            onPress={() => props.navigation.navigate('RenterProfile')}
+          />
+        </>
       )}
 
       <DrawerItem
@@ -86,11 +102,17 @@ const RoleBasedDrawerNavigator = () => {
       )}
 
       {currentUser?.role === 'shopkeeper' && (
-        <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} options={{ title: 'Shopkeeper Dashboard' }} />
+        <>
+          <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} options={{ title: 'Shopkeeper Dashboard' }} />
+          <Drawer.Screen name="ShopkeeperProfile" component={DynamicProfile} options={{ title: 'Shopkeeper Account' }} />
+        </>
       )}
 
       {currentUser?.role === 'renter' && (
-        <Drawer.Screen name="RenterDashboard" component={RenterDashboardScreen} options={{ title: 'Renter Dashboard' }} />
+        <>
+          <Drawer.Screen name="RenterDashboard" component={RenterDashboardScreen} options={{ title: 'Renter Dashboard' }} />
+          <Drawer.Screen name="RenterProfile" component={DynamicProfile} options={{ title: 'Renter Account' }} />
+        </>
       )}
     </Drawer.Navigator>
   );
