@@ -12,6 +12,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { useGlobalContext } from '../context/globalContext';
 import { showMessage } from 'react-native-flash-message';
+import { useNavigation } from '@react-navigation/native';
 
 // Email validation regex
 const isValidEmail = (email: string) => {
@@ -35,6 +36,8 @@ const DynamicProfile = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
+
+  const navigation = useNavigation();
 
   if (!currentUser) {
     return null; // Should not happen if only accessible by logged-in users
@@ -173,6 +176,9 @@ const DynamicProfile = () => {
     <ScrollView style={styles.container}>
       {/* Back Button - Moved to Bottom */}
       <View style={styles.contentContainer}>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Text style={styles.backButtonText}>← Back</Text>
+        </Pressable>
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Pressable onPress={handleImagePress}>
@@ -423,5 +429,18 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 8,
     alignItems: 'center',
+  },
+  backButton: {
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: '#ddd',
+    borderRadius: 6,
+    alignItems: 'center',
+    width: '100%',
+  },
+  backButtonText: {
+    fontWeight: 'bold',
+    color: '#333',
+    fontSize: 16,
   },
 });

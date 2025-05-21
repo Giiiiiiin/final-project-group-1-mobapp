@@ -1,12 +1,19 @@
 import React, { createContext, useState, useContext } from 'react';
 
-// Types
 export type Role = 'admin' | 'shopkeeper' | 'renter' | null;
 
 export interface ImageData {
   uri: string;
-  type?: string; // e.g., 'local' | 'remote'
+  type?: string;
   name?: string;
+}
+
+export interface Equipment {
+  id: string;
+  name: string;
+  price: string;
+  plan: string;
+  description?: string;
 }
 
 export interface User {
@@ -14,7 +21,17 @@ export interface User {
   email: string;
   password: string;
   role: Role;
-  profileImage?: ImageData; // Optional image URI
+  profileImage?: ImageData;
+  equipmentList?: Equipment[];
+  currentlyBorrowedList?: Equipment[];
+  previouslyBorrowedList?: Equipment[];
+}
+
+export interface PaymentPlan {
+  id: string;
+  title: string;
+  durationDays: number;
+  cost: number;
 }
 
 interface Theme {
@@ -33,9 +50,13 @@ interface GlobalContextProps {
   isLoggedIn: boolean;
   setIsLoggedIn: (status: boolean) => void;
   theme: Theme;
-  users: User[]; // Our local "database"
+  users: User[];
+  paymentPlans: PaymentPlan[];
+  setPaymentPlans: (plans: PaymentPlan[]) => void;
   registerUser: (email: string, password: string, role: Role, profileImage?: string) => void;
   loginUser: (email: string, password: string) => boolean;
+  setUsers: (users: User[]) => void;
+  updateUserEquipment: (userId: string, newList: Equipment[]) => void;
 }
 
 const defaultTheme: Theme = {
@@ -60,12 +81,15 @@ const defaultUsers: User[] = [
     email: 'shop@gmail.com',
     password: 'shop',
     role: 'shopkeeper',
+    equipmentList: [],
   },
   {
     id: '3',
     email: 'renter@gmail.com',
     password: 'renter',
     role: 'renter',
+    currentlyBorrowedList: [],
+    previouslyBorrowedList: [],
   },
 ];
 
@@ -75,6 +99,20 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [users, setUsers] = useState<User[]>(defaultUsers);
+  const [paymentPlans, setPaymentPlans] = useState<PaymentPlan[]>([
+    {
+      id: '1',
+      title: 'Basic Weekly',
+      durationDays: 7,
+      cost: 10,
+    },
+    {
+      id: '2',
+      title: 'Premium Monthly',
+      durationDays: 30,
+      cost: 30,
+    },
+  ]);
 
   const registerUser = (email: string, password: string, role: Role, profileImage?: string) => {
     const newUser: User = {
@@ -82,7 +120,10 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       email,
       password,
       role,
-      profileImage,
+      profileImage: profileImage ? { uri: profileImage } : undefined,
+      equipmentList: role === 'shopkeeper' ? [] : undefined,
+      currentlyBorrowedList: role === 'renter' ? [] : undefined,
+      previouslyBorrowedList: role === 'renter' ? [] : undefined,
     };
 
     setUsers((prev) => [...prev, newUser]);
@@ -99,6 +140,18 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return false;
   };
 
+  const updateUserEquipment = (userId: string, newList: Equipment[]) => {
+    setUsers((prev) =>
+      prev.map((user) =>
+        user.id === userId ? { ...user, equipmentList: newList } : user
+      )
+    );
+
+    if (currentUser?.id === userId) {
+      setCurrentUser({ ...currentUser, equipmentList: newList });
+    }
+  };
+
   return (
     <GlobalContext.Provider
       value={{
@@ -108,9 +161,12 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         setIsLoggedIn,
         theme: defaultTheme,
         users,
+        paymentPlans,
+        setPaymentPlans,
         registerUser,
         loginUser,
         setUsers,
+        updateUserEquipment,
       }}
     >
       {children}
@@ -120,6 +176,8 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
 export const useGlobalContext = () => {
   const context = useContext(GlobalContext);
-  if (!context) throw new Error('useGlobalContext must be used within a GlobalProvider');
+  if (!context) {
+    throw new Error('useGlobalContext must be used within a GlobalProvider');
+  }
   return context;
 };

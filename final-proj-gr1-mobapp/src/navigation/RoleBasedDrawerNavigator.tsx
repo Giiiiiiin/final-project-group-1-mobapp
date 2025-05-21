@@ -1,4 +1,3 @@
-// RoleBasedDrawerNavigator.tsx
 import React from 'react';
 import {
   createDrawerNavigator,
@@ -8,10 +7,9 @@ import {
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
 import ShopkeeperDashboardScreen from '../screens/ShopkeeperDashboardScreen';
 import RenterDashboardScreen from '../screens/RenterDashboardScreen';
-import ManageAccountsScreen from '../screens/ManageAccountsScreen';
-import DynamicProfile from '../screens/DynamicProfile';
+import ManagePaymentPlansScreen from '../screens/ManagePaymentPlansScreen';
+import AdminStackNavigator from './AdminStackNavigator';
 import { useGlobalContext } from '../context/globalContext';
-import { showMessage } from 'react-native-flash-message';
 
 const Drawer = createDrawerNavigator();
 
@@ -33,12 +31,16 @@ const CustomDrawerContent = (props) => {
           />
           <DrawerItem
             label="Manage Accounts"
-            onPress={() => props.navigation.navigate('ManageAccounts')}
+            onPress={() => props.navigation.navigate('AdminStack')}
+          />
+          <DrawerItem
+            label="Manage Payment Plans"
+            onPress={() => props.navigation.navigate('ManagePaymentPlans')}
           />
         </>
       )}
 
-      {(currentUser?.role === 'shopkeeper') && (
+      {currentUser?.role === 'shopkeeper' && (
         <DrawerItem
           label="Shopkeeper Dashboard"
           onPress={() => props.navigation.navigate('ShopkeeperDashboard')}
@@ -75,23 +77,20 @@ const RoleBasedDrawerNavigator = () => {
       }
       drawerContent={(props) => <CustomDrawerContent {...props} />}
     >
-      {/* Admin Screens */}
       {currentUser?.role === 'admin' && (
         <>
           <Drawer.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
-          <Drawer.Screen name="ManageAccounts" component={ManageAccountsScreen} options={{ title: 'Manage Accounts' }} />
-          <Drawer.Screen name="DynamicProfile" component={DynamicProfile} options={{ title: 'Admin Profile' }} />
+          <Drawer.Screen name="AdminStack" component={AdminStackNavigator} options={{ title: 'Manage Accounts' }} />
+          <Drawer.Screen name="ManagePaymentPlans" component={ManagePaymentPlansScreen} options={{ title: 'Manage Payment Plans' }} />
         </>
       )}
 
-      {/* Shopkeeper Screen */}
       {currentUser?.role === 'shopkeeper' && (
-        <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} />
+        <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} options={{ title: 'Shopkeeper Dashboard' }} />
       )}
 
-      {/* Renter Screen */}
       {currentUser?.role === 'renter' && (
-        <Drawer.Screen name="RenterDashboard" component={RenterDashboardScreen} />
+        <Drawer.Screen name="RenterDashboard" component={RenterDashboardScreen} options={{ title: 'Renter Dashboard' }} />
       )}
     </Drawer.Navigator>
   );

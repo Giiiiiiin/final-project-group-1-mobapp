@@ -1,27 +1,39 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, TextInput, ScrollView, Alert } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TextInput,
+  ScrollView,
+  Alert,
+} from 'react-native';
+import { useGlobalContext } from '../context/globalContext';
 
 const ShopkeeperDashboardScreen = () => {
-  const [equipmentList, setEquipmentList] = useState([]);
+  const { currentUser, updateUserEquipment, theme } = useGlobalContext();
+  const equipmentList = currentUser?.equipmentList ?? [];
+
   const [newEquipment, setNewEquipment] = useState({
     name: '',
     price: '',
     plan: '',
     description: '',
   });
-  const [showAddForm, setShowAddForm] = useState(false)
+  const [showAddForm, setShowAddForm] = useState(false);
 
   const handleAddEquipment = () => {
-    if (!newEquipment.name || !newEquipment.price) {
+    if (!newEquipment.name || !newEquipment.price || !newEquipment.plan) {
       Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
-    setEquipmentList([...equipmentList, {
+    const newItem = {
       id: Date.now().toString(),
-      ...newEquipment
-    }]);
-    
+      ...newEquipment,
+    };
+
+    updateUserEquipment(currentUser!.id, [...equipmentList, newItem]);
     setNewEquipment({ name: '', price: '', plan: '', description: '' });
     setShowAddForm(false);
     Alert.alert('Success', 'Equipment added to your listing!');
@@ -33,8 +45,8 @@ const ShopkeeperDashboardScreen = () => {
       <Text style={styles.subtitle}>Manage your gear listings and rentals.</Text>
 
       {!showAddForm ? (
-        <TouchableOpacity 
-          style={styles.addButton} 
+        <TouchableOpacity
+          style={[styles.addButton, { backgroundColor: theme.primary }]}
           onPress={() => setShowAddForm(true)}
         >
           <Text style={styles.addButtonText}>+ Add Equipment</Text>
@@ -42,48 +54,47 @@ const ShopkeeperDashboardScreen = () => {
       ) : (
         <View style={styles.addForm}>
           <Text style={styles.formTitle}>Add New Equipment</Text>
-          
+
           <TextInput
             style={styles.input}
             placeholder="Equipment Name*"
             value={newEquipment.name}
-            onChangeText={(text) => setNewEquipment({...newEquipment, name: text})}
+            onChangeText={(text) => setNewEquipment({ ...newEquipment, name: text })}
           />
-          
+
           <TextInput
             style={styles.input}
             placeholder="Daily Price (₱)"
             value={newEquipment.price}
-            onChangeText={(text) => setNewEquipment({...newEquipment, price: text})}
+            onChangeText={(text) => setNewEquipment({ ...newEquipment, price: text })}
             keyboardType="numeric"
           />
 
-           <TextInput
+          <TextInput
             style={styles.input}
-            placeholder="Set Payment Plan"
+            placeholder="Set Payment Plan*"
             value={newEquipment.plan}
-            onChangeText={(text) => setNewEquipment({...newEquipment, plan: text})}
-            keyboardType="default"
+            onChangeText={(text) => setNewEquipment({ ...newEquipment, plan: text })}
           />
-          
+
           <TextInput
             style={[styles.input, styles.descriptionInput]}
             placeholder="Description (optional)"
             value={newEquipment.description}
-            onChangeText={(text) => setNewEquipment({...newEquipment, description: text})}
+            onChangeText={(text) => setNewEquipment({ ...newEquipment, description: text })}
             multiline
           />
-          
+
           <View style={styles.buttonContainer}>
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.cancelButton]}
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: '#999' }]}
               onPress={() => setShowAddForm(false)}
             >
               <Text style={styles.buttonText}>Cancel</Text>
             </TouchableOpacity>
-            
-            <TouchableOpacity 
-              style={[styles.actionButton, styles.submitButton]}
+
+            <TouchableOpacity
+              style={[styles.actionButton, { backgroundColor: theme.accent }]}
               onPress={handleAddEquipment}
             >
               <Text style={styles.buttonText}>Add Equipment</Text>
@@ -93,7 +104,7 @@ const ShopkeeperDashboardScreen = () => {
       )}
 
       <ScrollView style={styles.listContainer}>
-        {equipmentList.map(item => (
+        {equipmentList.map((item) => (
           <View key={item.id} style={styles.equipmentCard}>
             <Text style={styles.equipmentName}>{item.name}</Text>
             <Text style={styles.equipmentPrice}>₱{item.price}/{item.plan}</Text>
@@ -106,6 +117,8 @@ const ShopkeeperDashboardScreen = () => {
     </View>
   );
 };
+
+export default ShopkeeperDashboardScreen;
 
 const styles = StyleSheet.create({
   container: {
@@ -125,7 +138,6 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addButton: {
-    backgroundColor: '#4CAF50',
     padding: 15,
     borderRadius: 8,
     alignItems: 'center',
@@ -156,6 +168,7 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 15,
     fontSize: 16,
+    backgroundColor: '#fff',
   },
   descriptionInput: {
     height: 80,
@@ -170,12 +183,6 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     width: '48%',
     alignItems: 'center',
-  },
-  cancelButton: {
-    backgroundColor: '#f44336',
-  },
-  submitButton: {
-    backgroundColor: '#2196F3',
   },
   buttonText: {
     color: 'white',
@@ -206,5 +213,3 @@ const styles = StyleSheet.create({
     color: '#666',
   },
 });
-
-export default ShopkeeperDashboardScreen;
