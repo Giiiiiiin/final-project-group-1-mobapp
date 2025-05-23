@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
 
@@ -8,7 +8,6 @@ const HomeScreen = () => {
   const navigation = useNavigation();
 
   if (!currentUser) {
-    // This should not happen unless context is broken
     Alert.alert('Error', 'User not found. Please log in again.');
     setIsLoggedIn(false);
     navigation.reset({ index: 0, routes: [{ name: 'Login' }] });

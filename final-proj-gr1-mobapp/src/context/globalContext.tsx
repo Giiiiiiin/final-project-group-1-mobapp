@@ -1,6 +1,8 @@
 import React, { createContext, useState, useContext } from 'react';
 
 export type Role = 'admin' | 'shopkeeper' | 'renter' | null;
+export type RentalStatus = 'Renting' | 'Rented';
+export type MessageType = 'request' | 'notification' | 'response' | 'reply';
 
 export interface ImageData {
   uri: string;
@@ -12,12 +14,25 @@ export interface Equipment {
   id: string;
   name: string;
   price: string;
-  plan: string;
+  paymentPlanIds: string[];
   description?: string;
-  categories?: string[]; 
-  images?: string[];  
+  categories?: string[];
+  images: string[];
+  status: RentalStatus;
+  selectedPlanId?: string;
+  totalExtensions?: number;
+  isReturnPending?: boolean;
 }
 
+export interface Message {
+  id: string;
+  fromUserId: string;
+  toUserId: string;
+  content: string;
+  timestamp: string;
+  type: MessageType;
+  planId?: string;
+}
 
 export interface User {
   id: string;
@@ -28,13 +43,14 @@ export interface User {
   equipmentList?: Equipment[];
   currentlyBorrowedList?: Equipment[];
   previouslyBorrowedList?: Equipment[];
+  messages?: Message[];
+  equipmentRentedList?: Equipment[];
 }
 
 export interface PaymentPlan {
   id: string;
   title: string;
   durationDays: number;
-  cost: number;
 }
 
 interface Theme {
@@ -60,6 +76,13 @@ interface GlobalContextProps {
   loginUser: (email: string, password: string) => boolean;
   setUsers: (users: User[]) => void;
   updateUserEquipment: (userId: string, newList: Equipment[]) => void;
+  sendMessage: (
+    toUserId: string,
+    fromUserId: string,
+    content: string,
+    type: MessageType,
+    planId?: string
+  ) => void;
 }
 
 const defaultTheme: Theme = {
@@ -84,7 +107,60 @@ const defaultUsers: User[] = [
     email: 'shop@gmail.com',
     password: 'shop',
     role: 'shopkeeper',
-    equipmentList: [],
+    equipmentList: [
+      {
+        id: 'eq1',
+        name: 'Longsword',
+        price: '500',
+        paymentPlanIds: ['1', '2'],
+        description: 'A finely forged longsword ideal for mid-range combat.',
+        categories: ['Longsword'],
+        images: ['https://www.historicaleuropeanmartialarts.com/wp-content/uploads/2022/06/federschwert-best-hema-practice-swords-guide-1024x921-1.png '],
+        status: 'Renting',
+      },
+      {
+        id: 'eq2',
+        name: 'Zweihander',
+        price: '750',
+        paymentPlanIds: ['1'],
+        description: 'A massive two-handed sword for powerful strikes.',
+        categories: ['Longsword'],
+        images: ['https://medenraider.com/wp-content/uploads/2024/05/synthetic-zweihander.jpg '],
+        status: 'Renting',
+      },
+      {
+        id: 'eq3',
+        name: 'Shield',
+        price: '300',
+        paymentPlanIds: ['2'],
+        description: 'Sturdy shield suitable for defense.',
+        categories: ['Shield'],
+        images: ['https://i.ebayimg.com/images/g/H8wAAOSw31tk1-3-/s-l1200.jpg '],
+        status: 'Renting',
+      },
+      {
+        id: 'eq4',
+        name: 'Armor',
+        price: '900',
+        paymentPlanIds: ['1', '2'],
+        description: 'Protective armor set for full-body defense.',
+        categories: ['Armor'],
+        images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn :ANd9GcTYLif5pYV1Q7nxpsOKBH-7RrP8ZjdidQ6uJA&s'],
+        status: 'Renting',
+      },
+      {
+        id: 'eq5',
+        name: 'Rapier',
+        price: '450',
+        paymentPlanIds: ['1'],
+        description: 'Lightweight and fast piercing weapon.',
+        categories: ['Rapier'],
+        images: ['https://encrypted-tbn0.gstatic.com/images?q=tbn :ANd9GcR2F87DxV7qSsQfKyILHjE3Lb2wCdQ_PpvAiA&s'],
+        status: 'Renting',
+      },
+    ],
+    messages: [],
+    equipmentRentedList: [],
   },
   {
     id: '3',
@@ -93,6 +169,7 @@ const defaultUsers: User[] = [
     role: 'renter',
     currentlyBorrowedList: [],
     previouslyBorrowedList: [],
+    messages: [],
   },
 ];
 
@@ -107,17 +184,20 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       id: '1',
       title: 'Basic Weekly',
       durationDays: 7,
-      cost: 10,
     },
     {
       id: '2',
       title: 'Premium Monthly',
       durationDays: 30,
-      cost: 30,
     },
   ]);
 
   const registerUser = (email: string, password: string, role: Role, profileImage?: string) => {
+    const emailExists = users.some(user => user.email.toLowerCase() === email.toLowerCase());
+    if (emailExists) {
+      throw new Error('Email already registered');
+    }
+
     const newUser: User = {
       id: String(users.length + 1),
       email,
@@ -127,14 +207,16 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       equipmentList: role === 'shopkeeper' ? [] : undefined,
       currentlyBorrowedList: role === 'renter' ? [] : undefined,
       previouslyBorrowedList: role === 'renter' ? [] : undefined,
+      messages: [],
+      equipmentRentedList: role === 'shopkeeper' ? [] : undefined,
     };
 
-    setUsers((prev) => [...prev, newUser]);
+    setUsers(prev => [...prev, newUser]);
     return newUser;
   };
 
   const loginUser = (email: string, password: string): boolean => {
-    const foundUser = users.find((user) => user.email === email && user.password === password);
+    const foundUser = users.find(user => user.email === email && user.password === password);
 
     if (foundUser) {
       setCurrentUser(foundUser);
@@ -144,14 +226,44 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   const updateUserEquipment = (userId: string, newList: Equipment[]) => {
-    setUsers((prev) =>
-      prev.map((user) =>
+    setUsers(prev =>
+      prev.map(user =>
         user.id === userId ? { ...user, equipmentList: newList } : user
       )
     );
 
     if (currentUser?.id === userId) {
-      setCurrentUser({ ...currentUser, equipmentList: newList });
+      setCurrentUser(prev => (prev ? { ...prev, equipmentList: newList } : prev));
+    }
+  };
+
+  const sendMessage = (
+    toUserId: string,
+    fromUserId: string,
+    content: string,
+    type: MessageType,
+    planId?: string
+  ) => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      fromUserId,
+      toUserId,
+      content,
+      timestamp: new Date().toISOString(),
+      type,
+      planId,
+    };
+
+    setUsers(prev =>
+      prev.map(user =>
+        user.id === toUserId
+          ? { ...user, messages: [...(user.messages || []), newMessage] }
+          : user
+      )
+    );
+
+    if (currentUser?.id === toUserId) {
+      setCurrentUser(prev => (prev ? { ...prev, messages: [...(prev.messages || []), newMessage] } : prev));
     }
   };
 
@@ -170,6 +282,7 @@ export const GlobalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         loginUser,
         setUsers,
         updateUserEquipment,
+        sendMessage,
       }}
     >
       {children}

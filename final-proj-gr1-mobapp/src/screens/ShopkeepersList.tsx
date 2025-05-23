@@ -1,5 +1,11 @@
 import React from 'react';
-import { View, Text, FlatList, Pressable, StyleSheet, SafeAreaView } from 'react-native';
+import {
+  Text,
+  FlatList,
+  Pressable,
+  StyleSheet,
+  SafeAreaView,
+} from 'react-native';
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
 import BottomSpacer from '../components/BottomSpacer';
@@ -20,8 +26,8 @@ const ShopkeepersList = () => {
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
           <Pressable
-            style={styles.userCard}
             onPress={() => navigation.navigate('InspectShopkeeper', { user: item })}
+            style={styles.userCard}
           >
             <Text style={styles.userEmail}>{item.email}</Text>
             <Text style={styles.userRoleBadge}>{item.role}</Text>
@@ -36,8 +42,17 @@ const ShopkeepersList = () => {
 export default ShopkeepersList;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 16, backgroundColor: '#fff', paddingBottom: 80 },
-  header: { fontSize: 22, fontWeight: 'bold', marginBottom: 16 },
+  container: {
+    flex: 1,
+    padding: 16,
+    backgroundColor: '#fff',
+    paddingBottom: 80,
+  },
+  header: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    marginBottom: 16,
+  },
   backButton: {
     marginBottom: 16,
     padding: 12,

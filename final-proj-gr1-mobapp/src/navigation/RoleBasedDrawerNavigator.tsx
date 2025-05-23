@@ -5,13 +5,14 @@ import {
   DrawerItem,
 } from '@react-navigation/drawer';
 import AdminDashboardScreen from '../screens/AdminDashboardScreen';
-import ShopkeeperDashboardScreen from '../screens/ShopkeeperDashboardScreen';
 import RenterDashboardScreen from '../screens/RenterDashboardScreen';
 import ManagePaymentPlansScreen from '../screens/ManagePaymentPlansScreen';
 import AdminStackNavigator from './AdminStackNavigator';
 import ShopkeeperStackNavigator from './ShopkeeperStackNavigator';
-import RenterStackNavigator from './RenterStackNavigator';
 import DynamicProfile from '../screens/DynamicProfile';
+import DynamicMessages from '../screens/DynamicMessages';
+import EquipmentRented from '../screens/EquipmentRented';
+import CurrentlyRented from '../screens/CurrentlyRented';
 
 import { useGlobalContext } from '../context/globalContext';
 
@@ -54,6 +55,14 @@ const CustomDrawerContent = (props) => {
             label="Shopkeeper Profile"
             onPress={() => props.navigation.navigate('ShopkeeperProfile')}
           />
+          <DrawerItem
+            label="User Messages"
+            onPress={() => props.navigation.navigate('ShopkeeperMessages')}
+          />
+          <DrawerItem
+            label="Equipment Rented"
+            onPress={() => props.navigation.navigate('EquipmentRented')}
+          />
         </>
       )}
 
@@ -66,6 +75,14 @@ const CustomDrawerContent = (props) => {
           <DrawerItem
             label="Renter Profile"
             onPress={() => props.navigation.navigate('RenterProfile')}
+          />
+          <DrawerItem
+            label="User Messages"
+            onPress={() => props.navigation.navigate('RenterMessages')}
+          />
+          <DrawerItem
+            label="Currently Rented"
+            onPress={() => props.navigation.navigate('CurrentlyRented')}
           />
         </>
       )}
@@ -103,8 +120,10 @@ const RoleBasedDrawerNavigator = () => {
 
       {currentUser?.role === 'shopkeeper' && (
         <>
-          <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperDashboardScreen} options={{ title: 'Shopkeeper Dashboard' }} />
+          <Drawer.Screen name="ShopkeeperDashboard" component={ShopkeeperStackNavigator} options={{ title: 'Shopkeeper Dashboard' }} />
           <Drawer.Screen name="ShopkeeperProfile" component={DynamicProfile} options={{ title: 'Shopkeeper Account' }} />
+          <Drawer.Screen name="ShopkeeperMessages" component={DynamicMessages} options={{ title: 'User Messages' }}  />
+          <Drawer.Screen name="EquipmentRented" component={EquipmentRented} options={{ title: 'Equipment Rented' }} />
         </>
       )}
 
@@ -112,6 +131,8 @@ const RoleBasedDrawerNavigator = () => {
         <>
           <Drawer.Screen name="RenterDashboard" component={RenterDashboardScreen} options={{ title: 'Renter Dashboard' }} />
           <Drawer.Screen name="RenterProfile" component={DynamicProfile} options={{ title: 'Renter Account' }} />
+          <Drawer.Screen name="RenterMessages" component={DynamicMessages} options={{ title: 'User Messages' }}  />
+          <Drawer.Screen name="CurrentlyRented" component={CurrentlyRented} options={{ title: 'Currently Rented' }} />
         </>
       )}
     </Drawer.Navigator>
