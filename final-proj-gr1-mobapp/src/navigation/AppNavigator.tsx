@@ -14,9 +14,8 @@ export const AppNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={({ navigation }) => ({
-        // Only show the custom header if NOT logged in
         header: !isLoggedIn ? (props) => <Header {...props} navigation={navigation} /> : undefined,
-        headerShown: !isLoggedIn, // Hide default header if not logged in
+        headerShown: !isLoggedIn,
       })}
     >
       {!isLoggedIn ? (

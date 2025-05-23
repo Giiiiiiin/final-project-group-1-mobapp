@@ -1,5 +1,11 @@
 import React, { useState } from 'react';
-import { View, TextInput, Text, StyleSheet, Pressable } from 'react-native';
+import {
+  View,
+  TextInput,
+  Text,
+  StyleSheet,
+  Pressable,
+} from 'react-native';
 import { Picker } from '@react-native-picker/picker';
 import { useGlobalContext } from '../context/globalContext';
 import { useNavigation } from '@react-navigation/native';
@@ -7,7 +13,6 @@ import { showMessage } from 'react-native-flash-message';
 
 type Role = 'renter' | 'shopkeeper';
 
-// Email validation regex
 const isValidEmail = (email: string) => {
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   return emailRegex.test(email);
@@ -23,7 +28,7 @@ const SignInScreen = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSignUp = () => {
-    const trimmedEmail = email.trim();
+    const trimmedEmail = email.trim().toLowerCase();
     const trimmedPassword = password.trim();
 
     if (!trimmedEmail || !trimmedPassword) {
@@ -35,11 +40,10 @@ const SignInScreen = () => {
       return;
     }
 
-    // Validate email format
     if (!isValidEmail(trimmedEmail)) {
       showMessage({
         message: 'Invalid Email',
-        description: 'Please enter a valid email address. [email@example.com]',
+        description: 'Please enter a valid email address.',
         type: 'danger',
       });
       return;
@@ -126,8 +130,16 @@ const SignInScreen = () => {
 export default SignInScreen;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20 },
-  title: { fontSize: 24, marginBottom: 20, textAlign: 'center' },
+  container: {
+    flex: 1,
+    justifyContent: 'center',
+    padding: 20,
+  },
+  title: {
+    fontSize: 24,
+    marginBottom: 20,
+    textAlign: 'center',
+  },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -135,12 +147,17 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     borderRadius: 5,
   },
-  picker: { marginVertical: 10 },
+  picker: {
+    marginVertical: 10,
+  },
   button: {
     padding: 12,
     borderRadius: 8,
     marginTop: 10,
     alignItems: 'center',
   },
-  buttonText: { color: '#FFF', fontWeight: 'bold' },
+  buttonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+  },
 });

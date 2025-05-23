@@ -27,24 +27,23 @@ const InspectShopkeeper = () => {
   const route = useRoute<InspectShopkeeperRouteProp>();
   const navigation = useNavigation();
   const { user: routeUser } = route.params;
-  const { users, setUsers, currentUser, theme } = useGlobalContext();
-
+  const { users, setUsers, currentUser, theme, paymentPlans } = useGlobalContext();
   const [user, setUser] = useState(routeUser);
   const [isEditing, setIsEditing] = useState(false);
   const [editedEmail, setEditedEmail] = useState(user.email);
   const [emailError, setEmailError] = useState('');
-
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
   const handleEmailSave = () => {
-    const trimmedEmail = editedEmail.trim();
+    const trimmedEmail = editedEmail.trim().toLowerCase();
     if (!trimmedEmail || !isValidEmail(trimmedEmail)) {
       setEmailError('Please enter a valid email address');
       return;
     }
+
     const emailExists = users.some(
       u => u.email === trimmedEmail && u.id !== user.id
     );
@@ -52,10 +51,14 @@ const InspectShopkeeper = () => {
       setEmailError('This email is already registered.');
       return;
     }
-    const updated = users.map(u => u.id === user.id ? { ...u, email: trimmedEmail } : u);
+
+    const updated = users.map(u =>
+      u.id === user.id ? { ...u, email: trimmedEmail } : u
+    );
     setUsers(updated);
     setUser(prev => ({ ...prev, email: trimmedEmail }));
     setIsEditing(false);
+
     showMessage({ message: 'Email updated successfully', type: 'success' });
   };
 
@@ -64,14 +67,19 @@ const InspectShopkeeper = () => {
       setPasswordError('Password must be at least 6 characters.');
       return;
     }
+
     if (newPassword !== confirmPassword) {
       setPasswordError('Passwords do not match.');
       return;
     }
-    const updated = users.map(u => u.id === user.id ? { ...u, password: newPassword } : u);
+
+    const updated = users.map(u =>
+      u.id === user.id ? { ...u, password: newPassword } : u
+    );
     setUsers(updated);
     setUser(prev => ({ ...prev, password: newPassword }));
     setIsChangingPassword(false);
+
     showMessage({ message: 'Password updated successfully', type: 'success' });
   };
 
@@ -96,123 +104,162 @@ const InspectShopkeeper = () => {
       Alert.alert('Permission Required', 'Enable media access to upload.');
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ImagePicker.MediaTypeOptions.Images, allowsEditing: true, aspect: [1, 1], quality: 1 });
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
     if (!result.canceled && result.assets.length > 0) {
       const uri = result.assets[0].uri;
-      const updated = users.map(u => u.id === user.id ? { ...u, profileImage: { uri } } : u);
+      const updated = users.map(u =>
+        u.id === user.id ? { ...u, profileImage: { uri } } : u
+      );
       setUsers(updated);
       setUser(prev => ({ ...prev, profileImage: { uri } }));
+
       showMessage({ message: 'Profile image updated', type: 'success' });
     }
   };
 
   return (
     <View style={styles.container}>
-    <ScrollView >
-      <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Text style={styles.backButtonText}>← Back</Text>
-      </Pressable>
-
-      <View style={styles.header}>
-        <Pressable onPress={currentUser?.role === 'admin' ? handleProfileImageChange : undefined}>
-          {user.profileImage ? (
-            <Image source={{ uri: user.profileImage.uri }} style={styles.image} />
-          ) : (
-            <View style={styles.placeholder}>
-              <Text style={styles.initials}>{user.email.charAt(0).toUpperCase()}</Text>
-            </View>
-          )}
+      <ScrollView>
+        <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backButtonText}>← Back</Text>
         </Pressable>
 
-        {isEditing ? (
-          <TextInput
-            value={editedEmail}
-            onChangeText={setEditedEmail}
-            style={styles.input}
-            placeholder="Email"
-          />
-        ) : (
-          <Text style={styles.email}>{user.email}</Text>
-        )}
-        <Text style={styles.role}>ID: {user.id}</Text>
-        <Text style={styles.role}>Role: {user.role}</Text>
-        {currentUser?.role === 'admin' && (
-          <Text style={styles.role}>Password: {user.password}</Text>
-        )}
+        <View style={styles.header}>
+          <Pressable onPress={currentUser?.role === 'admin' ? handleProfileImageChange : undefined}>
+            {user.profileImage ? (
+              <Image source={{ uri: user.profileImage.uri }} style={styles.image} />
+            ) : (
+              <View style={styles.placeholder}>
+                <Text style={styles.initials}>{user.email.charAt(0).toUpperCase()}</Text>
+              </View>
+            )}
+          </Pressable>
 
-        {currentUser?.role === 'admin' && !isEditing && !isChangingPassword && (
-          <View style={styles.adminActions}>
-            <Pressable style={[styles.button, { backgroundColor: theme.primary }]} onPress={() => setIsEditing(true)}>
-              <Text style={styles.buttonText}>Edit Email</Text>
-            </Pressable>
-            <Pressable style={[styles.button, { backgroundColor: theme.primary }]} onPress={() => setIsChangingPassword(true)}>
-              <Text style={styles.buttonText}>Edit User Password</Text>
-            </Pressable>
-            <Pressable style={[styles.button, { backgroundColor: theme.danger }]} onPress={handleDelete}>
-              <Text style={styles.buttonText}>Delete User</Text>
-            </Pressable>
-          </View>
-        )}
+          {isEditing ? (
+            <>
+              <TextInput
+                value={editedEmail}
+                onChangeText={setEditedEmail}
+                style={styles.input}
+                placeholder="Email"
+              />
+              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
+            </>
+          ) : (
+            <Text style={styles.email}>{user.email}</Text>
+          )}
 
-        {(isEditing || isChangingPassword) && (
-          <View style={styles.adminActions}>
-            <Pressable
-              style={[styles.button, { backgroundColor: theme.accent }]}
-              onPress={isEditing ? handleEmailSave : handlePasswordSave}
-            >
-              <Text style={styles.buttonText}>Save</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.button, { backgroundColor: '#999' }]}
-              onPress={() => {
-                setIsEditing(false);
-                setIsChangingPassword(false);
-                setPasswordError('');
-              }}
-            >
-              <Text style={styles.buttonText}>Cancel</Text>
-            </Pressable>
-          </View>
-        )}
+          <Text style={styles.role}>ID: {user.id}</Text>
+          <Text style={styles.role}>Role: {user.role}</Text>
+          {currentUser?.role === 'admin' && <Text style={styles.role}>Password: {user.password}</Text>}
 
-        {isChangingPassword && (
-          <View style={styles.passwordSection}>
-            <TextInput
-              value={newPassword}
-              onChangeText={setNewPassword}
-              secureTextEntry
-              placeholder="New Password"
-              style={styles.input}
-            />
-            <TextInput
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-              placeholder="Confirm Password"
-              style={styles.input}
-            />
-            {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
-          </View>
-        )}
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Equipment Listings</Text>
-        {(user.equipmentList?.length ?? 0) > 0 ? (
-          user.equipmentList!.map((item) => (
-            <View key={item.id} style={styles.card}>
-              <Text style={styles.itemTitle}>{item.name}</Text>
-              <Text>₱{item.price}/{item.plan}</Text>
-              {item.description && <Text>{item.description}</Text>}
+          {currentUser?.role === 'admin' && !isEditing && !isChangingPassword && (
+            <View style={styles.adminActions}>
+              <Pressable style={[styles.button, { backgroundColor: theme.primary }]} onPress={() => setIsEditing(true)}>
+                <Text style={styles.buttonText}>Edit Email</Text>
+              </Pressable>
+              <Pressable style={[styles.button, { backgroundColor: theme.primary }]} onPress={() => setIsChangingPassword(true)}>
+                <Text style={styles.buttonText}>Edit User Password</Text>
+              </Pressable>
+              <Pressable style={[styles.button, { backgroundColor: theme.danger }]} onPress={handleDelete}>
+                <Text style={styles.buttonText}>Delete User</Text>
+              </Pressable>
             </View>
-          ))
-        ) : (
-          <Text style={styles.empty}>No equipment listed.</Text>
-        )}
-      </View >
-      
-    </ScrollView>
-    <BottomSpacer />
+          )}
+
+          {(isEditing || isChangingPassword) && (
+            <View style={styles.adminActions}>
+              <Pressable
+                style={[styles.button, { backgroundColor: theme.accent }]}
+                onPress={isEditing ? handleEmailSave : handlePasswordSave}
+              >
+                <Text style={styles.buttonText}>Save</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.button, { backgroundColor: '#999' }]}
+                onPress={() => {
+                  setIsEditing(false);
+                  setIsChangingPassword(false);
+                  setPasswordError('');
+                }}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </Pressable>
+            </View>
+          )}
+
+          {isChangingPassword && (
+            <View style={styles.passwordSection}>
+              <TextInput
+                value={newPassword}
+                onChangeText={setNewPassword}
+                secureTextEntry
+                placeholder="New Password"
+                style={styles.input}
+              />
+              <TextInput
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+                placeholder="Confirm Password"
+                style={styles.input}
+              />
+              {passwordError ? <Text style={styles.error}>{passwordError}</Text> : null}
+            </View>
+          )}
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Equipment Listings</Text>
+          {(user.equipmentList?.length ?? 0) > 0 ? (
+            user.equipmentList!.map((item) => (
+              <Pressable key={item.id} onPress={() => {}}>
+                <View style={styles.equipmentCard}>
+                  {item?.images?.length > 0 ? (
+                    <Image source={{ uri: item.images[0] }} style={styles.equipmentImage} />
+                  ) : (
+                    <View style={[styles.equipmentImage, styles.imagePlaceholder]}>
+                      <Text>No Image</Text>
+                    </View>
+                  )}
+
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.equipmentName}>{item.name}</Text>
+                  </View>
+
+                  <View style={styles.plansContainer}>
+                    {item.paymentPlanIds?.map(planId => {
+                      const plan = paymentPlans.find(p => p.id === planId);
+                      return plan ? (
+                        <View key={planId} style={styles.planPill}>
+                          <Text style={styles.planPillText}>
+                            {plan.title} ({plan.durationDays}d)
+                          </Text>
+                        </View>
+                      ) : null;
+                    })}
+                  </View>
+
+                  <Text style={styles.equipmentPrice}>₱{item.price}</Text>
+                  <View style={[styles.statusPill, item.status === 'Rented' ? styles.rentedPill : styles.rentingPill]}>
+                    <Text style={styles.statusPillText}>{item.status}</Text>
+                  </View>
+                </View>
+              </Pressable>
+            ))
+          ) : (
+            <Text style={styles.empty}>No equipment listed.</Text>
+          )}
+        </View>
+      </ScrollView>
+      <BottomSpacer />
     </View>
   );
 };
@@ -224,7 +271,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#f5f5f5',
     padding: 16,
-    paddingBottom: 80, 
+    paddingBottom: 80,
   },
   header: {
     alignItems: 'center',
@@ -268,16 +315,75 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 8,
   },
-  card: {
-    backgroundColor: '#fff',
-    padding: 12,
+  equipmentCard: {
+    backgroundColor: 'white',
+    padding: 15,
     borderRadius: 8,
     marginBottom: 10,
     elevation: 2,
   },
-  itemTitle: {
+  equipmentImage: {
+    width: '100%',
+    height: 150,
+    borderRadius: 6,
+    marginBottom: 10,
+  },
+  imagePlaceholder: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#eee',
+  },
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  equipmentName: {
+    fontSize: 18,
     fontWeight: 'bold',
+  },
+  equipmentPrice: {
     fontSize: 16,
+    color: '#4CAF50',
+    marginVertical: 5,
+  },
+  plansContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginVertical: 8,
+  },
+  planPill: {
+    backgroundColor: '#e3f2fd',
+    borderRadius: 16,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: '#2196F3',
+  },
+  planPillText: {
+    color: '#2196F3',
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  statusPill: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+    marginTop: 5,
+  },
+  rentingPill: {
+    backgroundColor: '#4CAF50',
+  },
+  rentedPill: {
+    backgroundColor: '#FFA500',
+  },
+  statusPillText: {
+    color: 'white',
+    fontSize: 12,
+    fontWeight: 'bold',
   },
   empty: {
     fontStyle: 'italic',
@@ -327,5 +433,15 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     fontSize: 16,
+  },
+  passwordSection: {
+    width: '100%',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 12,
+    marginLeft: 5,
+    marginTop: -5,
   },
 });

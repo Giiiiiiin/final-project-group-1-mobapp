@@ -30,17 +30,15 @@ const DynamicProfile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [editedEmail, setEditedEmail] = useState(currentUser?.email || '');
   const [emailError, setEmailError] = useState('');
-
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [passwordError, setPasswordError] = useState('');
-
   const navigation = useNavigation();
 
   if (!currentUser) {
-    return null; // Should not happen if only accessible by logged-in users
+    return null;
   }
 
   const handleEditToggle = () => {
@@ -50,32 +48,28 @@ const DynamicProfile = () => {
   };
 
   const handleSave = () => {
-    const trimmedEmail = editedEmail.trim();
-
+    const trimmedEmail = editedEmail.trim().toLowerCase();
     if (!trimmedEmail) {
       setEmailError('Email is required');
       return;
     }
-
     if (!isValidEmail(trimmedEmail)) {
       setEmailError('Please enter a valid email address');
       return;
     }
-
-    const emailExists = users.some(
-      (user) =>
-        user.email.trim().toLowerCase() === trimmedEmail.toLowerCase()
-    );
-
-    if (emailExists && trimmedEmail !== currentUser.email) {
+    if (
+      users.some(user => user.email.trim().toLowerCase() === trimmedEmail.toLowerCase()) &&
+      trimmedEmail !== currentUser.email
+    ) {
       setEmailError('This email is already registered.');
       return;
     }
 
-    const updatedUsersList = users.map((user) =>
+    const updatedUsersList = users.map(user =>
       user.id === currentUser.id ? { ...user, email: trimmedEmail } : user
     );
     setUsers(updatedUsersList);
+
     const updatedUser = { ...currentUser, email: trimmedEmail };
     setCurrentUser(updatedUser);
 
@@ -101,7 +95,6 @@ const DynamicProfile = () => {
 
   const handleImagePress = async () => {
     const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (!permissionResult.granted) {
       Alert.alert('Permission Required', 'You need to allow access to your photo library.');
       return;
@@ -117,12 +110,13 @@ const DynamicProfile = () => {
     if (!result.canceled && result.assets && result.assets.length > 0) {
       const selectedImageUri = result.assets[0].uri;
 
-      const updatedUsers = users.map((user) =>
+      const updatedUsers = users.map(user =>
         user.id === currentUser.id
           ? { ...user, profileImage: selectedImageUri }
           : user
       );
       setUsers(updatedUsers);
+
       const updatedCurrentUser = { ...currentUser, profileImage: selectedImageUri };
       setCurrentUser(updatedCurrentUser);
 
@@ -143,23 +137,22 @@ const DynamicProfile = () => {
       setPasswordError('Current password is incorrect.');
       return;
     }
-
     if (!isValidPassword(newPassword)) {
       setPasswordError('Password must be at least 6 characters long.');
       return;
     }
-
     if (newPassword !== confirmPassword) {
       setPasswordError('Passwords do not match.');
       return;
     }
 
-    const updatedUsersList = users.map((user) =>
+    const updatedUsersList = users.map(user =>
       user.id === currentUser.id
         ? { ...user, password: newPassword }
         : user
     );
     setUsers(updatedUsersList);
+
     const updatedUser = { ...currentUser, password: newPassword };
     setCurrentUser(updatedUser);
 
@@ -177,8 +170,9 @@ const DynamicProfile = () => {
       {/* Back Button - Moved to Bottom */}
       <View style={styles.contentContainer}>
         <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-            <Text style={styles.backButtonText}>← Back</Text>
+          <Text style={styles.backButtonText}>← Back</Text>
         </Pressable>
+
         {/* Profile Header */}
         <View style={styles.profileHeader}>
           <Pressable onPress={handleImagePress}>
@@ -204,9 +198,7 @@ const DynamicProfile = () => {
                 keyboardType="email-address"
                 autoCapitalize="none"
               />
-              {emailError ? (
-                <Text style={styles.errorText}>{emailError}</Text>
-              ) : null}
+              {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
             </>
           ) : (
             <Text style={styles.userName}>{currentUser.email}</Text>
@@ -268,9 +260,7 @@ const DynamicProfile = () => {
               placeholder="Confirm New Password"
               style={styles.editableEmailInput}
             />
-            {passwordError ? (
-              <Text style={styles.errorText}>{passwordError}</Text>
-            ) : null}
+            {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
           </View>
         )}
 
@@ -292,7 +282,6 @@ const DynamicProfile = () => {
           </View>
         )}
       </View>
-      {/* Back Button - Always at Bottom */}
     </ScrollView>
   );
 };
@@ -306,7 +295,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     padding: 16,
-    paddingBottom: 100, // Adds space above the fixed bottom button
+    paddingBottom: 100,
   },
   profileHeader: {
     alignItems: 'center',
@@ -423,11 +412,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopWidth: 1,
     borderColor: '#ddd',
-  },
-  backButton: {
-    padding: 12,
-    borderRadius: 8,
-    alignItems: 'center',
   },
   backButton: {
     marginBottom: 16,

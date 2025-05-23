@@ -15,7 +15,6 @@ export interface PaymentPlan {
   id: string;
   title: string;
   durationDays: number;
-  cost: number;
 }
 
 const ManagePaymentPlansScreen = () => {
@@ -23,24 +22,21 @@ const ManagePaymentPlansScreen = () => {
   const [isAdding, setIsAdding] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newDuration, setNewDuration] = useState('');
-  const [newCost, setNewCost] = useState('');
 
   const [editingPlanId, setEditingPlanId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');
   const [editDuration, setEditDuration] = useState('');
-  const [editCost, setEditCost] = useState('');
 
   const isTitleTaken = (title: string, skipId?: string): boolean => {
-  return paymentPlans.some(
-    (plan) =>
-      plan.title.trim().toLowerCase() === title.trim().toLowerCase() &&
-      plan.id !== skipId // Skip current plan being edited
-  );
-};
+    return paymentPlans.some(
+        (plan) =>
+        plan.title.trim().toLowerCase() === title.trim().toLowerCase() &&
+        plan.id !== skipId 
+    );
+  };
 
-  // Add new plan
   const handleAddPlan = () => {
-  if (!newTitle || !newDuration || !newCost) {
+  if (!newTitle || !newDuration ) {
     Alert.alert('Error', 'All fields are required.');
     return;
   }
@@ -54,17 +50,14 @@ const ManagePaymentPlansScreen = () => {
     id: String(paymentPlans.length + 1),
     title: newTitle,
     durationDays: parseInt(newDuration),
-    cost: parseFloat(newCost),
   };
 
   setPaymentPlans([...paymentPlans, newPlan]);
   setNewTitle('');
   setNewDuration('');
-  setNewCost('');
   setIsAdding(false);
 };
 
-  // Delete plan
   const handleDeletePlan = (id: string) => {
     Alert.alert(
       'Confirm Deletion',
@@ -81,17 +74,14 @@ const ManagePaymentPlansScreen = () => {
     );
   };
 
-  // Begin editing a plan
   const handleEditPlan = (item: PaymentPlan) => {
     setEditingPlanId(item.id);
     setEditTitle(item.title);
     setEditDuration(item.durationDays.toString());
-    setEditCost(item.cost.toString());
   };
 
-  // Save edited plan
   const handleSaveEdit = () => {
-  if (!editTitle || !editDuration || !editCost) {
+  if (!editTitle || !editDuration ) {
     Alert.alert('Error', 'All fields are required.');
     return;
   }
@@ -108,7 +98,6 @@ const ManagePaymentPlansScreen = () => {
             ...plan,
             title: editTitle,
             durationDays: parseInt(editDuration),
-            cost: parseFloat(editCost),
           }
         : plan
     )
@@ -117,7 +106,6 @@ const ManagePaymentPlansScreen = () => {
   setEditingPlanId(null);
   setEditTitle('');
   setEditDuration('');
-  setEditCost('');
 };
 
   return (
@@ -144,13 +132,6 @@ const ManagePaymentPlansScreen = () => {
                   keyboardType="numeric"
                   style={styles.input}
                 />
-                <TextInput
-                  value={editCost}
-                  onChangeText={setEditCost}
-                  placeholder="Cost"
-                  keyboardType="decimal-pad"
-                  style={styles.input}
-                />
                 <View style={styles.planActions}>
                   <Pressable
                     style={[styles.saveButton, { backgroundColor: theme.accent }]}
@@ -170,7 +151,6 @@ const ManagePaymentPlansScreen = () => {
               <>
                 <Text style={styles.planTitle}>{item.title}</Text>
                 <Text>Duration: {item.durationDays} days</Text>
-                <Text>Cost: ${item.cost.toFixed(2)}</Text>
                 <View style={styles.planActions}>
                   <Pressable
                     style={[styles.editButton, { backgroundColor: theme.accent }]}
@@ -190,7 +170,6 @@ const ManagePaymentPlansScreen = () => {
           </View>
         )}
       />
-
       {!isAdding ? (
         <Pressable
           style={[styles.addButton, { backgroundColor: theme.primary }]}
@@ -213,13 +192,6 @@ const ManagePaymentPlansScreen = () => {
             keyboardType="numeric"
             style={styles.input}
           />
-          <TextInput
-            placeholder="Cost"
-            value={newCost}
-            onChangeText={setNewCost}
-            keyboardType="decimal-pad"
-            style={styles.input}
-          />
 
           <View style={styles.formActions}>
             <Pressable
@@ -234,7 +206,6 @@ const ManagePaymentPlansScreen = () => {
                 setIsAdding(false);
                 setNewTitle('');
                 setNewDuration('');
-                setNewCost('');
               }}
             >
               <Text style={styles.buttonText}>Cancel</Text>
